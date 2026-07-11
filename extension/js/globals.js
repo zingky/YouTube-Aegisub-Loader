@@ -6,7 +6,7 @@
     const STORAGE_KEY_GLOBAL = 'yt_sub_pro_v77_final';
     const STORAGE_KEY_SOURCES = 'kull_sub_sources_v1';
     const DEFAULT_SOURCES = [
-        { id: 'default', repo: 'zingky/Kull-Vietsub', path: 'subs', enabled: true }
+        { id: 'default', repo: 'zingky/Kull-Vietsub', branch: 'main', path: 'subs', enabled: true }
     ];
 
     const DEFAULTS = {
@@ -16,10 +16,19 @@
         posX: 350, posY: 100, width: 820, height: 600,
         isBold: true, isItalic: false, isUnderline: false, isStrike: false,
         kPre:    { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.0 },
-        kActive: { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.3, zIn: 100, zOut: 100 },
+        kActive: { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.1, zIn: 100, zOut: 100 },
         kPost:   { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.0 },
         closeOnClickOutside: true,
-        constrainToVideo: true
+        constrainToVideo: true,
+        specialEffect: 'none',
+        effectSpeed: {
+            rainbow_outline: 1, rainbow_outline_rgb: 1, rainbow_text: 1, sine_wave: 20,
+            shine_sweep: 1, split_color: 1, retro_80s: 1, golden: 1, float_hover: 1,
+            breathe: 1, jello: 1, typewriter: 1, pulse: 1, shake: 1, glitch: 1,
+            ghosting: 1, water_reflection: 1, d3d_block: 1, glow_pulse: 1
+        },
+        sineWaveAmplitude: 2,
+        useGlobalStyles: false
     };
 
     const __ = window.__SUB;
@@ -49,13 +58,13 @@
     };
 
     __.addSource = function (url) {
-        // Parse GitHub URL like https://github.com/zingky/Kull-Vietsub/tree/main/subs
-        const match = url.match(/github\.com\/([^/]+)\/([^/]+)\/tree\/[^/]+\/(.+)/);
+        const match = url.match(/github\.com\/([^/]+)\/([^/]+)\/tree\/([^/]+)\/(.+)/);
         if (!match) return false;
         const repo = `${match[1]}/${match[2]}`;
-        const path = match[3].replace(/\/+$/, '');
+        const branch = match[3];
+        const path = match[4].replace(/\/+$/, '');
         const id = 'src_' + Date.now();
-        __.subSources.push({ id, repo, path, enabled: true });
+        __.subSources.push({ id, repo, branch, path, enabled: true });
         __.saveSubSources();
         return true;
     };
@@ -73,6 +82,18 @@
     __.getVideoId = function () {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get('v');
+    };
+
+    __.getEffectSpeed = function () {
+        const eff = __.globalSettings.specialEffect || 'none';
+        const speeds = __.globalSettings.effectSpeed || {};
+        return speeds[eff] || 1;
+    };
+
+    __.setEffectSpeed = function (val) {
+        const eff = __.globalSettings.specialEffect || 'none';
+        if (!__.globalSettings.effectSpeed) __.globalSettings.effectSpeed = {};
+        __.globalSettings.effectSpeed[eff] = parseFloat(val) || 1;
     };
 
     __.saveCache = function () {
@@ -134,14 +155,30 @@
         }));
     };
 
+    // Aegisub-style outline+blur: 8-direction text-shadow ring
     __.buildShadow = function (ow, bl, oc) {
-        if (ow > 0 || bl > 0) {
-            return bl > 0 ? `0 0 ${bl}px ${oc}` : 'none';
+        if (ow <= 0 && bl <= 0) return 'none';
+        if (ow <= 0) {
+            return `0 0 ${bl}px ${oc}`;
         }
-        return 'none';
+        if (bl <= 0) {
+            return [
+                `${ow}px 0 0 ${oc}`, `-${ow}px 0 0 ${oc}`,
+                `0 ${ow}px 0 ${oc}`, `0 -${ow}px 0 ${oc}`,
+                `${ow}px ${ow}px 0 ${oc}`, `-${ow}px ${ow}px 0 ${oc}`,
+                `${ow}px -${ow}px 0 ${oc}`, `-${ow}px -${ow}px 0 ${oc}`
+            ].join(',');
+        }
+        return [
+            `${ow}px 0 ${bl}px ${oc}`, `-${ow}px 0 ${bl}px ${oc}`,
+            `0 ${ow}px ${bl}px ${oc}`, `0 -${ow}px ${bl}px ${oc}`,
+            `${ow}px ${ow}px ${bl}px ${oc}`, `-${ow}px ${ow}px ${bl}px ${oc}`,
+            `${ow}px -${ow}px ${bl}px ${oc}`, `-${ow}px -${ow}px ${bl}px ${oc}`
+        ].join(',');
     };
 
     __.buildDeepGlow = function (ow, bl, oc) {
+        if (ow <= 0 && bl <= 0) return 'none';
         const layers = [];
         for (let i = 1; i <= 4; i++) {
             const spread = ow * i * 1.2;
@@ -172,7 +209,6 @@
             rectX = 0;
             rectY = (oh - rectH) / 2;
         }
-        // Offset from the player container
         const player = video.closest('.html5-video-player');
         const vRect = video.getBoundingClientRect();
         const pRect = player ? player.getBoundingClientRect() : vRect;
