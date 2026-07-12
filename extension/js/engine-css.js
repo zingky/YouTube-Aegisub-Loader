@@ -3,6 +3,14 @@
 
     const __ = window.__SUB;
 
+    // If libass mode is on, skip CSS engine entirely
+    if (__.globalSettings.libassMode) {
+        if (!__.startEngine) {
+            __.startEngine = function () {};
+        }
+        return;
+    }
+
     // Known available fonts check
     function isFontAvailable(fontName) {
         if (!fontName) return false;

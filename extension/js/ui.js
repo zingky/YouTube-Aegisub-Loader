@@ -117,6 +117,14 @@
         popup.innerHTML = `
             <div id="sub-header" style="padding: 4px 10px; background: rgba(255,255,255,0.05); cursor: move; display: flex; align-items: center; border-bottom:1px solid rgba(255,255,255,0.1); gap:4px;">
                 <button id="reset-ui" style="border:1px solid #555; color:#ccc; cursor:pointer; background:rgba(255,255,255,0.1); font-size:9px; padding:1px 6px; border-radius:4px;">Reset 🔄</button>
+                <div id="libass-toggle-group" style="display:inline-flex; align-items:center; gap:2px; margin-left:4px; border-left:1px solid #444; padding-left:4px;">
+                    <button id="libass-off-btn" class="libass-toggle-btn ${!__.globalSettings.libassMode ? 'active' : ''}" data-mode="false" style="border:1px solid #555; color:#ccc; cursor:pointer; background:rgba(255,255,255,0.1); font-size:8px; padding:1px 5px; border-radius:3px 0 0 3px;">CSS</button>
+                    <button id="libass-on-btn" class="libass-toggle-btn ${__.globalSettings.libassMode ? 'active' : ''}" data-mode="true" style="border:1px solid #555; color:#ccc; cursor:pointer; background:rgba(255,255,255,0.1); font-size:8px; padding:1px 5px; border-radius:0 3px 3px 0;">Libass</button>
+                </div>
+                <style>
+                    .libass-toggle-btn.active { background: #3ea6ff !important; color: #fff !important; border-color: #3ea6ff !important; }
+                    .libass-toggle-btn:hover { background: rgba(62,166,255,0.2) !important; }
+                </style>
                 <div style="display:flex; align-items:center; gap:2px; font-size:9px; color:#aaa; flex:1;">
                     <span id="yt-id-display" style="color:#3ea6ff; font-weight:bold; font-size:9px;">${__.getVideoId() || 'N/A'}</span>
                     <span id="auto-sub-status" class="status-tag status-none" style="font-size:8px;">Searching...</span>
@@ -419,6 +427,20 @@
 
         // Reset button - preserve sources
         document.getElementById('reset-ui').onclick = handleReset;
+
+        // Libass toggle buttons
+        document.getElementById('libass-off-btn').onclick = () => {
+            if (__.globalSettings.libassMode === false) return;
+            __.globalSettings.libassMode = false;
+            __.saveCache();
+            location.reload();
+        };
+        document.getElementById('libass-on-btn').onclick = () => {
+            if (__.globalSettings.libassMode === true) return;
+            __.globalSettings.libassMode = true;
+            __.saveCache();
+            location.reload();
+        };
 
         document.getElementById('closeSubPopup').onclick = () => popup.style.display = 'none';
         document.getElementById('assFile').onchange = async (e) => { if (typeof __.parseASS === 'function') __.parseASS(await e.target.files[0].text()); };

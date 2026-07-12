@@ -7,6 +7,8 @@
         const lines = text.split(/\r?\n/);
         __.subtitles = [];
         __.styleSettings = {};
+        // Store original text for JASSUB/libass engine
+        __.lastRawAssText = text;
         const resXMatch = text.match(/PlayResX:\s*(\d+)/i), resYMatch = text.match(/PlayResY:\s*(\d+)/i);
         __.playResX = resXMatch ? parseInt(resXMatch[1]) : 384;
         __.playResY = resYMatch ? parseInt(resYMatch[1]) : 288;
