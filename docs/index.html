@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Aegisub Loader</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <span class="logo-icon">🎬</span>
+                <div>
+                    <h1>YouTube Aegisub Loader</h1>
+                    <p class="subtitle">v8.1 — Load & display Aegisub subtitles (.ass) on YouTube</p>
+                </div>
+            </div>
+            <nav>
+                <a href="#features">Features</a>
+                <a href="#install">Install</a>
+                <a href="#usage">Usage</a>
+                <a href="#vi">Tiếng Việt</a>
+                <a href="https://github.com/zingky/YouTube-Aegisub-Loader" target="_blank" class="github-link">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h2>Dual-Engine Aegisub Subtitle Player for YouTube</h2>
+                    <p>CSS + ASS.js (WebGL) rendering engines. Auto-fetch from GitHub. Karaoke support. Per-style customization.</p>
+                    <div class="hero-buttons">
+                        <a href="https://github.com/zingky/YouTube-Aegisub-Loader/archive/refs/heads/main.zip" class="btn btn-primary">📦 Download ZIP</a>
+                        <a href="#install" class="btn btn-secondary">📖 Installation Guide</a>
+                    </div>
+                </div>
+                <div class="hero-screenshot">
+                    <img src="https://github.com/user-attachments/assets/7e7ef8ce-47b8-4248-9e89-1eeb751fcbc1" alt="Extension Screenshot">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="section">
+        <div class="container">
+            <h2 class="section-title">✨ Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📂</div>
+                    <h3>Load .ass Files</h3>
+                    <p>From your computer or auto-fetch from GitHub repositories based on Video ID.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Dual Engines</h3>
+                    <p>CSS (HTML/CSS, default) or <strong>ASS.js</strong> (WebGL/Canvas accelerated). Toggle via header buttons.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Multi-Source</h3>
+                    <p>Add multiple GitHub repos as subtitle sources. Smart search with title-based relevance sorting.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3>Karaoke</h3>
+                    <p>Three-state karaoke (Pre/Active/Post) with syllable-level effects using <code>\k</code> tags.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚙️</div>
+                    <h3>Per-Style Override</h3>
+                    <p>Customize position, size, outline, blur for each style individually. Full ASS Alignment + Margins support.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>Auto Backup</h3>
+                    <p>Export/import all settings per video. Reset and restore with one click.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="install" class="section section-dark">
+        <div class="container">
+            <h2 class="section-title">📦 Installation (Developer Mode)</h2>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Download or Clone</h4>
+                        <code>git clone https://github.com/zingky/YouTube-Aegisub-Loader.git</code>
+                        <p>Or <a href="https://github.com/zingky/YouTube-Aegisub-Loader/archive/refs/heads/main.zip">download ZIP</a> and extract.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <h4>Open Chrome Extensions</h4>
+                        <p>Navigate to <code>chrome://extensions/</code></p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <h4>Enable Developer Mode</h4>
+                        <p>Toggle <strong>Developer mode</strong> (top right corner).</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-content">
+                        <h4>Load Unpacked</h4>
+                        <p>Click <strong>Load unpacked</strong> → select the <code>extension/</code> folder from the repo.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">5</div>
+                    <div class="step-content">
+                        <h4>Enjoy 🎉</h4>
+                        <p>Visit any YouTube video → <strong>SUB</strong> button appears in the player controls.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="note">
+                ⚠️ Ensure <code>vnf-comic-sans.ttf</code> is present in the <code>extension/</code> folder.
+            </div>
+        </div>
+    </section>
+
+    <section id="usage" class="section">
+        <div class="container">
+            <h2 class="section-title">🎯 Quick Usage</h2>
+            <div class="usage-grid">
+                <div class="usage-item">
+                    <h4>1. Load a .ass file</h4>
+                    <p>Click <strong>Choose File</strong> in the popup and select your .ass file. Or let it auto-fetch from GitHub.</p>
+                </div>
+                <div class="usage-item">
+                    <h4>2. Switch Engines</h4>
+                    <p>Toggle between <strong>CSS</strong> (default, recommended) and <strong>ASS.js</strong> (experimental, WebGL) using the buttons in the header bar.</p>
+                </div>
+                <div class="usage-item">
+                    <h4>3. Customize Styles</h4>
+                    <p>Adjust font size, outline, blur, colors globally or per-style via the STYLES panel on the right.</p>
+                </div>
+                <div class="usage-item">
+                    <h4>4. Manage Sources</h4>
+                    <p>Open the footer ⚙️ panel to add/remove GitHub subtitle sources. Configure backup & export.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="vi" class="section section-dark">
+        <div class="container">
+            <h2 class="section-title">🇻🇳 Tiếng Việt</h2>
+            <p class="vi-desc">Một tiện ích Chrome để tải và hiển thị phụ đề Aegisub (.ass) trên YouTube, hỗ trợ karaoke, tùy chỉnh từng style, song song 2 engine CSS/ASS.js (ASS.js đang thử nghiệm), và quản lý nhiều nguồn GitHub.</p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📂</div>
+                    <h3>Tải file .ass</h3>
+                    <p>Từ máy tính hoặc tự động lấy từ GitHub dựa trên ID video.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3>Song song 2 Engine</h3>
+                    <p>CSS (HTML/CSS, mặc định) hoặc <strong>ASS.js</strong> (WebGL/Canvas, thử nghiệm). Chuyển đổi qua nút trên thanh tiêu đề.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Đa nguồn</h3>
+                    <p>Thêm nhiều kho GitHub làm nguồn sub. Tìm kiếm thông minh, sắp xếp theo độ liên quan.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎤</div>
+                    <h3>Karaoke</h3>
+                    <p>Ba trạng thái (Pre/Active/Post) với hiệu ứng từng âm tiết qua tag <code>\k</code>.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container footer-content">
+            <div>
+                <p>Developed by <strong>Gemini</strong> & <strong>Kull</strong></p>
+                <p class="footer-links">
+                    <a href="https://github.com/zingky/YouTube-Aegisub-Loader" target="_blank">GitHub Repository</a>
+                    |
+                    <a href="https://github.com/zingky/Kull-Vietsub" target="_blank">Kull-Vietsub</a>
+                    |
+                    <a href="https://github.com/zingky/YouTube-Aegisub-Loader/issues" target="_blank">Report Issue</a>
+                </p>
+            </div>
+            <p class="footer-ver">v8.1</p>
+        </div>
+    </footer>
+</body>
+</html>
