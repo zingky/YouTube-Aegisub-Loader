@@ -5,7 +5,7 @@ A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTub
 GithubPage: https://zingky.github.io/YouTube-Aegisub-Loader
 
 <img width="1412" height="859" alt="image" src="https://github.com/user-attachments/assets/7e7ef8ce-47b8-4248-9e89-1eeb751fcbc1" />
-[Tiếng Việt bên dưới](#tiếng-việt)
+[Tiếng Việt bên dưới](#vietnamese)
 
 ---
 
@@ -46,7 +46,7 @@ This extension uses **CSS rendering** as the default engine (HTML/CSS-based, sup
 
 ---
 
-<a name="tiếng-việt"></a>
+<a name="vietnamese"></a>
 # 🎬 YouTube Aegisub Loader v8.1 (Bản Tiếng Việt)
 
 Một tiện ích Chrome để tải và hiển thị phụ đề Aegisub (.ass) trên YouTube, hỗ trợ karaoke, tùy chỉnh từng style, song song 2 engine CSS/ASS.js (ASS.js đang thử nghiệm), và quản lý nhiều nguồn GitHub.
@@ -92,5 +92,7 @@ Tiện ích dùng **CSS rendering** làm engine mặc định (dùng HTML/CSS, h
 
 ## Credits
 
-- Developed by **Gemini** & **Kull**
-- Repository: [https://github.com/zingky/Kull-Vietsub](https://github.com/zingky/Kull-Vietsub)
+- Developed by **Gemini** & &**Deepseek** & **Kull**
+- Subs source: [https://github.com/zingky/Kull-Vietsub](https://github.com/zingky/Kull-Vietsub)
+- Repository: [https://github.com/zingky/YouTube-Aegisub-Loader](https://github.com/zingky/YouTube-Aegisub-Loader)
+- Github Page: [https://zingky.github.io/YouTube-Aegisub-Loader](https://zingky.github.io/YouTube-Aegisub-Loader)
