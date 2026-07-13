@@ -72,11 +72,20 @@
         const container = document.getElementById('styleItems');
         if (!container) return;
         container.innerHTML = '';
+        // Collect which styles are actually used by subtitle lines
+        const usedStyles = new Set();
+        if (__.subtitles && __.subtitles.length) {
+            __.subtitles.forEach(sub => {
+                if (sub.style) usedStyles.add(sub.style);
+            });
+        }
         const priority = (n) => {
             n = n.toLowerCase();
             return n.includes('viet') ? 1 : n.includes('roma') ? 2 : n.includes('kanji') ? 3 : 99;
         };
         Object.keys(__.styleSettings).sort((a, b) => priority(a) - priority(b)).forEach(sName => {
+            // Skip styles with no subtitle lines using them
+            if (!usedStyles.has(sName)) return;
             const s = __.styleSettings[sName];
             const fontAvailable = __.getStyleFontFamily(sName);
             const fontWarn = (s.fontName && fontAvailable !== s.fontName) ? ' ⚠️' : '';
@@ -99,13 +108,24 @@
                 </div>`;
             item.querySelector('.reset-style-btn').onclick = (e) => {
                 e.stopPropagation();
-                s.posX = __.playResX / 2;
-                if (sName.toLowerCase().includes('roma')) s.posY = 80;
-                else if (sName.toLowerCase().includes('kanji')) s.posY = 155;
-                else s.posY = __.playResY - 80;
+                // Reset to original ASS position (fallback to current align/margins if orig missing)
+                const a = s.origAlign || s.align || 2;
+                const mL = (s.origMarginL !== undefined && s.origMarginL !== null) ? s.origMarginL : (s.marginL || 10);
+                const mR = (s.origMarginR !== undefined && s.origMarginR !== null) ? s.origMarginR : (s.marginR || 10);
+                const mV = (s.origMarginV !== undefined && s.origMarginV !== null) ? s.origMarginV : (s.marginV || 10);
+                switch (a) {
+                    case 1: case 4: case 7: s.posX = mL + 10; break;
+                    case 3: case 6: case 9: s.posX = __.playResX - mR - 10; break;
+                    default: s.posX = __.playResX / 2;
+                }
+                switch (a) {
+                    case 7: case 8: case 9: s.posY = mV + 10; break;
+                    case 4: case 5: case 6: s.posY = __.playResY / 2; break;
+                    default: s.posY = __.playResY - mV - 10;
+                }
                 s.color1 = s.origColor1 || '#ffffff';
                 s.color3 = s.origColor3 || '#000000';
-                s.fontSize = 23;
+                s.fontSize = 25;
                 s.outlineWidth = 2;
                 s.blur = 2;
                 __.saveSubToStorage();
@@ -833,10 +853,44 @@
     }
 
     // ============ RENDER A SINGLE SUB LINE ============
-    function renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, styleName) {
+    function renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, styleName, align) {
+        // alignment 1-9 ASS: 1=bottom-left, 2=bottom-center, 3=bottom-right,
+        // 4=mid-left, 5=mid-center, 6=mid-right,
+        // 7=top-left, 8=top-center, 9=top-right
+        const a = align || 2; // default bottom-center
+
+        // Line stacking direction based on vertical position in ASS alignment
+        // Bottom (1-3): lines stack upward (first line at bottom, last line at top)
+        // Mid (4-6): lines stack centered
+        // Top (7-9): lines stack downward (first line at top, last line at bottom)
         const lineSpacing = fs * 1.4;
-        const startY = posY - ((totalLines - 1) * lineSpacing) / 2;
+        let startY;
+        if (a >= 7) { // top
+            startY = posY;
+        } else if (a >= 4) { // mid
+            startY = posY - ((totalLines - 1) * lineSpacing) / 2;
+        } else { // bottom
+            startY = posY - (totalLines - 1) * lineSpacing;
+        }
         const lineY = startY + li * lineSpacing;
+
+        // Transform translate based on alignment
+        let tx, ty;
+        // Horizontal
+        if (a === 1 || a === 4 || a === 7) { tx = '0%'; }      // left
+        else if (a === 3 || a === 6 || a === 9) { tx = '-100%'; }  // right
+        else { tx = '-50%'; }                                    // center
+
+        // Vertical
+        if (a === 7 || a === 8 || a === 9) { ty = '0%'; }     // top
+        else if (a === 4 || a === 5 || a === 6) { ty = '-50%'; }  // mid
+        else { ty = '-100%'; }                                   // bottom
+
+        // Text alignment within the div
+        let textAlign;
+        if (a === 1 || a === 4 || a === 7) textAlign = 'left';
+        else if (a === 3 || a === 6 || a === 9) textAlign = 'right';
+        else textAlign = 'center';
 
         const div = document.createElement('div');
 
@@ -846,7 +900,7 @@
             useFont = styleFont;
         }
 
-        div.style.cssText = `position:absolute; left:${(posX / __.playResX * 100)}%; top:${(lineY / __.playResY * 100)}%; transform:translate(-50%, -50%); font-size:${fs}px; font-family:'${useFont}'; font-weight:${__.globalSettings.isBold ? 'bold' : 'normal'}; font-style:${__.globalSettings.isItalic ? 'italic' : 'normal'}; text-decoration:${__.globalSettings.isUnderline ? 'underline' : ''} ${__.globalSettings.isStrike ? 'line-through' : ''}; text-align:center; white-space:nowrap; pointer-events:none; width:calc(100% - 20px); z-index:99; opacity:${Math.max(0, opacity)};`;
+        div.style.cssText = `position:absolute; left:${(posX / __.playResX * 100)}%; top:${(lineY / __.playResY * 100)}%; transform:translate(${tx}, ${ty}); font-size:${fs}px; font-family:'${useFont}'; font-weight:${__.globalSettings.isBold ? 'bold' : 'normal'}; font-style:${__.globalSettings.isItalic ? 'italic' : 'normal'}; text-decoration:${__.globalSettings.isUnderline ? 'underline' : ''} ${__.globalSettings.isStrike ? 'line-through' : ''}; text-align:${textAlign}; white-space:nowrap; pointer-events:none; width:calc(100% - 20px); z-index:99; opacity:${Math.max(0, opacity)};`;
         const spanWrap = document.createElement('span');
 
         if (ub) {
@@ -1038,10 +1092,23 @@
                 const bl = isO ? s.blur : __.globalSettings.blur;
                 const oc = isO ? (s.color3 || __.globalSettings.color3) : __.globalSettings.color3;
                 const c1 = isO ? s.color1 : __.globalSettings.color1;
-                let posX = sub.filePos ? sub.filePos.x : (s.posX || __.playResX / 2);
-                let posY = sub.filePos ? sub.filePos.y : (s.posY || __.playResY - 35);
+
+                // Determine effective alignment for rendering: per-line overrides style
+                const effectiveAlign = sub.align || s.origAlign || 2;
+
+                let posX, posY;
                 const isExplicit = !!sub.filePos;
-                lineInfos.push({ sub, isO, fs, ow, bl, oc, c1, posX, posY, isExplicit });
+                if (isExplicit) {
+                    // \pos(x,y) overrides everything
+                    posX = sub.filePos.x;
+                    posY = sub.filePos.y;
+                } else {
+                    // Use the style position from parser (set by alignment+margins initially),
+                    // which can be adjusted via X/Y sliders in the UI
+                    posX = s.posX;
+                    posY = s.posY;
+                }
+                lineInfos.push({ sub, isO, fs, ow, bl, oc, c1, posX, posY, isExplicit, align: effectiveAlign });
             });
 
             const autoLines = lineInfos.filter(l => !l.isExplicit).sort((a, b) => a.posY - b.posY);
@@ -1065,7 +1132,7 @@
             const bc = __.globalSettings.boxColor;
             const bo = __.globalSettings.boxOpacity;
 
-            lineInfos.forEach(({ sub, isO, fs, ow, bl, oc, c1, posX, posY }) => {
+            lineInfos.forEach(({ sub, isO, fs, ow, bl, oc, c1, posX, posY, align }) => {
                 let opacity = 1;
                 const fadIn = __.globalSettings.fadIn / 1000;
                 const fadOut = __.globalSettings.fadOut / 1000;
@@ -1082,7 +1149,7 @@
                 groups.forEach((group, li) => {
                     const lineText = group.text || '';
                     const sylArray = group.syllables || [];
-                    const div = renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, sub.style);
+                    const div = renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, sub.style, align);
                     layer.appendChild(div);
                 });
             });

@@ -3,21 +3,45 @@
 
     const __ = window.__SUB;
 
-    // Only start if libass mode is enabled
+    // Only start if ASS.js mode is enabled
     if (!__.globalSettings.libassMode) return;
 
-    // ============ ASS.js (weizhenye/ASS) ============
+    // ============ weizhenye/ASS ============
     let _instance = null;
     let _containerDiv = null;
     let _resizeTimer = null;
+    let _observer = null;
+    let _initialized = false;
+
+    // ============ DESTROY HELPER ============
+    function destroyInstance() {
+        if (_instance) {
+            try { _instance.destroy(); } catch(e) {}
+            _instance = null;
+        }
+        if (_containerDiv) {
+            try { _containerDiv.remove(); } catch(e) {}
+            _containerDiv = null;
+        }
+        if (_observer) {
+            try { _observer.disconnect(); } catch(e) {}
+            _observer = null;
+        }
+        if (_resizeTimer) {
+            clearTimeout(_resizeTimer);
+            _resizeTimer = null;
+        }
+    }
+
+    // Expose destroyAssJs so main.js can call it on video change
+    __.destroyAssJs = destroyInstance;
 
     // ============ PREPROCESS ASS TEXT ============
-    // 1. Scale style font sizes by 0.7 (ASS font sizes are for Aegisub
-    //    preview at script resolution, YouTube player is much smaller).
-    // 2. Fix ASSDraw (\p1...\p0) + karaoke (\k) conflict:
+    // 1. Scale style font sizes by 0.7
+    // 2. Fix ASSDraw (\p1) + karaoke (\k) conflict:
     //    ASS.js splits karaoke on \k tags into syllables. If \p1
     //    appears in a karaoke line, the drawing commands get scattered
-    //    across syllables and rendered as plain text instead of vectors.
+    //    across syllables and rendered as plain text.
     //    Solution: strip ALL \k tags from lines containing \p[1-9].
 
     function preprocessAssText(text) {
@@ -51,7 +75,6 @@
 
             // ── Scale Fontsize in [V4+ Styles] ──
             if (inV4Styles && /^Style:/i.test(trimmed)) {
-                // Style: Name,Fontname,Fontsize,...
                 const idxComma = line.indexOf(',');
                 if (idxComma < 0) { result.push(line); continue; }
                 const afterName = line.substring(idxComma + 1);
@@ -63,7 +86,6 @@
                 if (!isNaN(fontSize)) {
                     const newSize = Math.round(fontSize * 0.7);
                     const capped = Math.max(6, Math.min(80, newSize));
-                    // Rebuild: prefix + fontname + , + newsize + rest
                     const restAfterSize = afterName.substring(idxComma2 + 1).substring(fontSizeStr.length);
                     result.push(line.substring(0, idxComma + 1) + fontname + ',' + capped + restAfterSize);
                     continue;
@@ -74,15 +96,13 @@
 
             // ── Process Dialogue/Events ──
             if (inEvents && /^Dialogue:/i.test(trimmed)) {
-                // Find text field (after 9th comma)
                 const parts = line.split(',');
                 if (parts.length < 10) { result.push(line); continue; }
                 const textPart = parts.slice(9).join(',');
 
                 // Check for ASSDraw drawing mode \p1..\p9
                 if (/\\[pP][1-9]/.test(textPart)) {
-                    // Strip ALL karaoke timing tags from this line
-                    // Drawing vectors + karaoke breaks in ASS.js
+                    // Strip ALL karaoke timing tags from drawing lines
                     let newText = textPart.replace(/\{[^}]*\\[kK][fpo]?\d+[^}]*\}/g, '');
 
                     // Scale inline \fs
@@ -197,8 +217,8 @@
             video.insertAdjacentElement('afterend', _containerDiv);
         }
 
-        const ro = new ResizeObserver(() => scheduleResize());
-        ro.observe(video);
+        _observer = new ResizeObserver(() => scheduleResize());
+        _observer.observe(video);
         document.addEventListener('fullscreenchange', scheduleResize);
         document.addEventListener('webkitfullscreenchange', scheduleResize);
         window.addEventListener('resize', scheduleResize);
@@ -207,13 +227,11 @@
     }
 
     // ============ LOAD SUB TO ASS.JS ============
-    __.loadSubToLibass = function (assText) {
+    __.loadSubToAssJs = function (assText) {
         if (!assText) return;
 
-        if (_instance) {
-            try { _instance.destroy(); } catch(e) {}
-            _instance = null;
-        }
+        // Destroy old instance before creating new one
+        destroyInstance();
 
         const video = document.querySelector('video');
         if (!video) {
@@ -236,16 +254,16 @@
                 resampling: 'video_height'
             });
             _instance.show();
-            console.log('[Libass] ASS.js initialized');
+            console.log('[ASS.js] Initialized');
             setTimeout(applyConstrain, 50);
         } catch (e) {
-            console.error('[Libass] ASS.js init error:', e);
+            console.error('[ASS.js] Init error:', e);
         }
     };
 
     // ============ ENGINE START ============
     __.startEngine = async function () {
-        console.log('[Libass] Starting ASS.js engine...');
+        console.log('[ASS.js] Starting engine...');
         if (!__.globalSettings.libassMode) return;
 
         let video = document.querySelector('video');
@@ -261,7 +279,7 @@
         }
 
         ensureContainer();
-        console.log('[Libass] Engine ready - waiting for sub data');
+        console.log('[ASS.js] Engine ready - waiting for sub data');
     };
 
     // ============ PATCH PARSER ============
@@ -269,9 +287,9 @@
     if (origParseASS) {
         __.parseASS = function (text) {
             origParseASS.call(this, text);
-            __.loadSubToLibass(text);
+            __.loadSubToAssJs(text);
         };
     }
 
-    console.log('[Libass] Engine loaded (ASS.js)');
+    console.log('[ASS.js] Engine loaded');
 })();

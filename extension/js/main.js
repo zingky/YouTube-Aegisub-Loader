@@ -141,6 +141,8 @@
         __.styleSettings = {};
         const layer = document.getElementById('sub-ultra-layer');
         if (layer) layer.innerHTML = '';
+        // Destroy ASS.js engine instance when switching videos
+        if (typeof __.destroyAssJs === 'function') __.destroyAssJs();
         __.currentVideoId = id;
         __.timeShiftMs = 0;
         const tsInput = document.getElementById('ts-input');
@@ -159,9 +161,9 @@
                 __.styleSettings = data.styleSettings;
                 if (typeof __.renderStyles === 'function') __.renderStyles();
                 document.getElementById('auto-sub-status').innerText = "Cached 💾";
-                // If libass mode, send cached subtitle to JASSUB
+                // If ASS.js mode, send cached subtitle to ASS.js
                 if (__.globalSettings.libassMode && data.subtitles && data.subtitles.length > 0) {
-                    __.loadSubToLibass(result[id + '_raw'] || '');
+                    __.loadSubToAssJs(result[id + '_raw'] || '');
                 }
             } else {
                 __.autoFetchSub(id);
