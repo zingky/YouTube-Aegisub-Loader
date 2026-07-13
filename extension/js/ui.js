@@ -683,21 +683,31 @@
 
         let assContent = '[Script Info]\n';
         assContent += 'ScriptType: v4.00+\n';
-        assContent += `PlayResX: ${__.playResX}\n`;
-        assContent += `PlayResY: ${__.playResY}\n\n`;
+        if (__.playResX) assContent += `PlayResX: ${__.playResX}\n`;
+        if (__.playResY) assContent += `PlayResY: ${__.playResY}\n\n`;
 
+        // Preserve original ASS [V4+ Styles] exactly as parsed
         assContent += '[V4+ Styles]\n';
         assContent += 'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n';
         Object.keys(__.styleSettings).forEach(name => {
             const s = __.styleSettings[name];
-            const c1Ass = __.hexToAss(s.color1);
-            const c3Ass = __.hexToAss(s.color3);
-            assContent += `Style: ${name},Arial,20,${c1Ass},&H0000FF,${c3Ass},&H000000,0,0,0,0,100,100,0,0,1,2,0,2,10,10,10,1\n`;
+            const c1Ass = __.hexToAss(s.origColor1 || s.color1 || '#ffffff');
+            const c3Ass = __.hexToAss(s.origColor3 || s.color3 || '#000000');
+            const fontName = s.fontName || 'Arial';
+            const fontSize = s.origFontSize || s.fontSize || 25;
+            const align = s.origAlign || s.align || 2;
+            const marginL = (s.origMarginL !== undefined && s.origMarginL !== null) ? s.origMarginL : (s.marginL || 10);
+            const marginR = (s.origMarginR !== undefined && s.origMarginR !== null) ? s.origMarginR : (s.marginR || 10);
+            const marginV = (s.origMarginV !== undefined && s.origMarginV !== null) ? s.origMarginV : (s.marginV || 10);
+            const outline = s.origOutlineWidth !== undefined ? s.origOutlineWidth : (s.outlineWidth || 2);
+            const shadow = s.origShadow !== undefined ? s.origShadow : 0;
+            assContent += `Style: ${name},${fontName},${fontSize},${c1Ass},&H0000FF,${c3Ass},&H000000,0,0,0,0,100,100,0,0,1,${outline},${shadow},${align},${marginL},${marginR},${marginV},1\n`;
         });
 
         assContent += '\n[Events]\n';
         assContent += 'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n';
         subsToDL.forEach((sub, idx) => {
+            // Use shifted times from subsToDL
             const startStr = __.formatTimeAss(sub.start);
             const endStr = __.formatTimeAss(sub.end);
             const styleName = sub.style;

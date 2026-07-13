@@ -122,6 +122,9 @@
                     marginL: marginL, marginR: marginR, marginV: marginV,
                     origAlign: align,
                     origMarginL: marginL, origMarginR: marginR, origMarginV: marginV,
+                    origFontSize: fontSize,
+                    origOutlineWidth: 2,
+                    origShadow: 0,
                     override: !__.globalSettings.useGlobalStyles,
                     visible: true
                 };
