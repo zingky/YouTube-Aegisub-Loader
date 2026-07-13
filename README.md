@@ -1,6 +1,6 @@
 # 🎬 YouTube Aegisub Loader v8.1
 
-A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTube with karaoke support, per-style settings, ASS.js/CSS dual engine, and GitHub source management.
+A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTube with karaoke support, per-style settings, CSS/ASS.js dual engine (ASS.js is experimental), and GitHub source management.
 
 [Tiếng Việt bên dưới](#tiếng-việt)
 <img width="1220" height="719" alt="image" src="https://github.com/user-attachments/assets/2adebc03-ae65-4f6f-b25e-93d121146922" />
@@ -9,7 +9,7 @@ A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTub
 ## Features
 
 - **Load .ass files** from your computer or auto-fetch from GitHub repositories based on Video ID
-- **Dual Rendering Engines:** CSS (HTML/CSS-based) or ASS.js (weizhenye/ASS, WebGL/Canvas accelerated). Toggle via header buttons.
+- **Dual Rendering Engines:** CSS (HTML/CSS-based, default) or ASS.js (weizhenye/ASS, WebGL/Canvas accelerated, experimental). Toggle via header buttons.
 - **Multi-Source:** Add multiple GitHub repos as subtitle sources; merge results automatically
 - **Smart Search:** Real-time file search with title-based relevance sorting
 - **Basic Karaoke:** Three-state karaoke (Pre/Active/Post) with syllable-level effects using `\k` tags
@@ -28,7 +28,7 @@ A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTub
 
 ## ⚠️ Note
 
-This extension offers **dual rendering engines**: CSS (HTML/CSS-based, supports basic to intermediate ASS features) and **ASS.js** (weizhenye/ASS, WebGL/Canvas accelerated for accurate ASS rendering). Toggle between them in the header bar. Complex effects are best handled by the ASS.js engine.
+This extension uses **CSS rendering** as the default engine (HTML/CSS-based, supports basic to intermediate ASS features). An experimental **ASS.js** engine (weizhenye/ASS, WebGL/Canvas accelerated) is also available — toggle via the CSS/ASS.js buttons in the header bar. ASS.js is in beta; CSS mode is recommended for daily use.
 
 ---
 
@@ -46,14 +46,14 @@ This extension offers **dual rendering engines**: CSS (HTML/CSS-based, supports 
 <a name="tiếng-việt"></a>
 # 🎬 YouTube Aegisub Loader v8.1 (Bản Tiếng Việt)
 
-Một tiện ích Chrome để tải và hiển thị phụ đề Aegisub (.ass) trên YouTube, hỗ trợ karaoke, tùy chỉnh từng style, song song 2 engine CSS/ASS.js, và quản lý nhiều nguồn GitHub.
+Một tiện ích Chrome để tải và hiển thị phụ đề Aegisub (.ass) trên YouTube, hỗ trợ karaoke, tùy chỉnh từng style, song song 2 engine CSS/ASS.js (ASS.js đang thử nghiệm), và quản lý nhiều nguồn GitHub.
 
 ---
 
 ## Tính năng
 
 - **Tải file .ass** từ máy tính hoặc tự động lấy từ GitHub dựa trên ID video
-- **Song song 2 Engine:** CSS (dùng HTML/CSS) hoặc ASS.js (weizhenye/ASS, WebGL/Canvas). Chuyển đổi qua nút trên thanh tiêu đề.
+- **Song song 2 Engine:** CSS (dùng HTML/CSS, mặc định) hoặc ASS.js (weizhenye/ASS, WebGL/Canvas, thử nghiệm). Chuyển đổi qua nút trên thanh tiêu đề.
 - **Đa nguồn:** Thêm nhiều kho GitHub làm nguồn sub; tự động gộp kết quả
 - **Tìm kiếm thông minh:** Tìm file realtime, sắp xếp theo độ liên quan với tiêu đề video
 - **Karaoke cơ bản:** Ba trạng thái (Pre/Active/Post) với hiệu ứng từng âm tiết qua tag `\k`
@@ -72,7 +72,7 @@ Một tiện ích Chrome để tải và hiển thị phụ đề Aegisub (.ass)
 
 ## ⚠️ Lưu ý
 
-Tiện ích cung cấp **song song 2 engine**: CSS (dùng HTML/CSS, hỗ trợ hiệu ứng từ cơ bản đến trung cấp) và **ASS.js** (weizhenye/ASS, WebGL/Canvas, render ASS chính xác). Chuyển đổi qua nút trên thanh tiêu đề. Các hiệu ứng phức tạp nên dùng engine ASS.js.
+Tiện ích dùng **CSS rendering** làm engine mặc định (dùng HTML/CSS, hỗ trợ hiệu ứng từ cơ bản đến trung cấp). Engine **ASS.js** (weizhenye/ASS, WebGL/Canvas) đang ở chế độ thử nghiệm — chuyển đổi qua nút CSS/ASS.js trên thanh tiêu đề. Nên dùng CSS mode hàng ngày, ASS.js chỉ để thử nghiệm.
 
 ---
 
