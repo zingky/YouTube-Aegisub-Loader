@@ -5,6 +5,7 @@ A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTub
 GithubPage: https://zingky.github.io/YouTube-Aegisub-Loader
 
 <img width="1412" height="859" alt="image" src="https://github.com/user-attachments/assets/7e7ef8ce-47b8-4248-9e89-1eeb751fcbc1" />
+
 [Tiếng Việt bên dưới](#vietnamese)
 
 ---
