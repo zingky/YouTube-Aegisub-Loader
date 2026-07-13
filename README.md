@@ -3,7 +3,7 @@
 A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTube with karaoke support, per-style settings, CSS/ASS.js dual engine (ASS.js is experimental), and GitHub source management.
 
 [Tiếng Việt bên dưới](#tiếng-việt)
-<img width="1220" height="719" alt="image" src="https://github.com/user-attachments/assets/2adebc03-ae65-4f6f-b25e-93d121146922" />
+<img width="1412" height="859" alt="image" src="https://github.com/user-attachments/assets/cc1cf8d3-bd6c-4867-b3c9-2624dc387c2b" />
 ---
 
 ## Features
