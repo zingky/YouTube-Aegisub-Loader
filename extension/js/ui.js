@@ -128,6 +128,7 @@
                 <div style="display:flex; align-items:center; gap:2px; font-size:9px; color:#aaa; flex:1;">
                     <span id="yt-id-display" style="color:#3ea6ff; font-weight:bold; font-size:9px;">${__.getVideoId() || 'N/A'}</span>
                     <span id="auto-sub-status" class="status-tag status-none" style="font-size:8px;">Searching...</span>
+                    <span id="version-badge" style="display:none; color:#ffaa00; background:rgba(255,170,0,0.15); border:1px solid #ffaa00; font-size:7px; border-radius:3px; padding:0px 4px; font-weight:bold; white-space:nowrap;"></span>
                     <div style="position:relative; display:inline-flex; align-items:center; gap:2px;">
                         <input id="sub-search-input" type="text" placeholder="Search sub..." style="background:rgba(255,255,255,0.1); border:1px solid #444; color:#fff; font-size:8px; width:100px; border-radius:3px; padding:1px 3px;">
                         <button id="btn-fetch-list" title="Fetch/Refresh file list" style="background:none; border:1px solid #444; color:#aaa; cursor:pointer; font-size:8px; border-radius:3px; padding:0px 3px;">🔍</button>
@@ -208,6 +209,11 @@
                     <div class="pill-panel" data-pill="advanced">
                         <div style="display:flex; align-items:center; gap:4px;">
                             <input type="checkbox" id="g-deepGlow" ${__.globalSettings.deepGlow ? 'checked' : ''}> <b style="font-size:10px;">Deep Glow</b>
+                        </div>
+                        <div class="g-row" style="margin:2px 0">
+                            <label style="font-size:9px;">Letter Spacing</label>
+                            <input type="range" id="g-letterSpacing" min="0" max="20" step="0.5" value="${__.globalSettings.letterSpacing || 0}" style="flex:1;">
+                            <input type="number" id="g-letterSpacingVal" value="${__.globalSettings.letterSpacing || 0}" class="num-in" step="0.5" style="width:35px;">
                         </div>
                         <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:4px;">
                             <b style="font-size:10px;">Special Effect</b>
@@ -616,10 +622,31 @@
                 footerPanel.style.display = 'none';
             }
         });
-        // Backup All
+        // Backup All: chỉ giữ cài đặt người dùng (style + global), không giữ dữ liệu từng dòng sub
+        function extractUserSettings(cfg) {
+            if (!cfg || typeof cfg !== 'object') return {};
+            // Xoá subtitles khỏi object gốc (phòng dữ liệu cũ cache)
+            delete cfg.subtitles;
+            // Chỉ lấy các key được phép
+            const allowed = ['styleSettings', 'playResX', 'playResY'];
+            const cleaned = {};
+            allowed.forEach(k => {
+                if (cfg[k] !== undefined && cfg[k] !== null) {
+                    cleaned[k] = cfg[k];
+                }
+            });
+            return cleaned;
+        }
+
         document.getElementById('btn-backup-all').onclick = () => {
             chrome.storage.local.get(null, (all) => {
-                const data = { version: 1, globalSettings: __.globalSettings, videoConfigs: all };
+                const videoConfigs = {};
+                Object.keys(all).forEach(key => {
+                    if (key.endsWith('_raw')) return;
+                    videoConfigs[key] = extractUserSettings(all[key]);
+                });
+                // Export kèm global settings hiện tại để biết có bật global style không, màu mặc định...
+                const data = { version: 1, globalSettings: __.globalSettings, videoConfigs };
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
@@ -632,11 +659,15 @@
             const id = __.getVideoId();
             if (!id) return alert('No video ID detected.');
             chrome.storage.local.get([id], (result) => {
-                const data = { version: 1, globalSettings: __.globalSettings, videoConfigs: result[id] ? { [id]: result[id] } : {} };
+                const data = {
+                    version: 1,
+                    globalSettings: __.globalSettings,
+                    videoConfigs: result[id] ? { [id]: extractUserSettings(result[id]) } : {}
+                };
                 const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
-                a.download = `kull_sub_${id}.json`;
+                a.download = `kull_sub_${id}_settings.json`;
                 a.click();
                 URL.revokeObjectURL(a.href);
             });
@@ -658,7 +689,7 @@
                             const curId = __.getVideoId();
                             if (curId && data.videoConfigs[curId]) {
                                 const cfg = data.videoConfigs[curId];
-                                if (cfg.subtitles) __.subtitles = cfg.subtitles;
+                                // Không khôi phục subtitles từ file JSON (chỉ giữ style settings + global)
                                 if (cfg.playResX) __.playResX = cfg.playResX;
                                 if (cfg.playResY) __.playResY = cfg.playResY;
                                 if (cfg.styleSettings) __.styleSettings = cfg.styleSettings;

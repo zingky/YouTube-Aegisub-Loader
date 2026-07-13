@@ -77,11 +77,11 @@
                     throw new Error('Not valid ASS content');
                 }
                 __.parseASS(text);
-                // Save to cache so subsequent auto checks don't re-fetch
+                // Save to cache so subsequent auto checks don't re-fetch (chỉ lưu settings, không lưu từng dòng sub)
                 const id = __.getVideoId();
                 if (id && __.subtitles.length) {
                     chrome.storage.local.set({
-                        [id]: { subtitles: __.subtitles, playResX: __.playResX, playResY: __.playResY, styleSettings: __.styleSettings },
+                        [id]: { playResX: __.playResX, playResY: __.playResY, styleSettings: __.styleSettings },
                         [id + '_raw']: text
                     });
                 }
@@ -152,23 +152,47 @@
         chrome.storage.local.get([id, id + '_raw'], (result) => {
             if (result[id]) {
                 const data = result[id];
-                if (Array.isArray(data.subtitles)) {
-                    migrateSubs(data.subtitles);
-                }
-                __.subtitles = data.subtitles;
-                __.playResX = data.playResX;
-                __.playResY = data.playResY;
-                __.styleSettings = data.styleSettings;
+                // Chỉ khôi phục style settings + kích thước video, không lấy lại từng dòng sub (tránh dữ liệu cũ)
+                if (data.playResX) __.playResX = data.playResX;
+                if (data.playResY) __.playResY = data.playResY;
+                if (data.styleSettings) __.styleSettings = data.styleSettings;
+                // Đánh dấu đã có cache (sub sẽ được tải từ raw/text khi startEngine gọi)
                 if (typeof __.renderStyles === 'function') __.renderStyles();
                 document.getElementById('auto-sub-status').innerText = "Cached 💾";
                 // If ASS.js mode, send cached subtitle to ASS.js
-                if (__.globalSettings.libassMode && data.subtitles && data.subtitles.length > 0) {
-                    __.loadSubToAssJs(result[id + '_raw'] || '');
+                if (__.globalSettings.libassMode && result[id + '_raw']) {
+                    __.loadSubToAssJs(result[id + '_raw']);
+                } else if (!__.globalSettings.libassMode && result[id + '_raw']) {
+                    // CSS mode: parse lại từ raw text để lấy sub data
+                    if (typeof __.parseASS === 'function' && result[id + '_raw']) {
+                        __.parseASS(result[id + '_raw']);
+                    }
                 }
             } else {
                 __.autoFetchSub(id);
             }
         });
+    };
+
+    // ============ VERSION CHECK ============
+    __.checkVersion = async function () {
+        try {
+            const resp = await fetch(__.versionCheckUrl);
+            if (!resp.ok) return;
+            const release = await resp.json();
+            const latest = (release.tag_name || release.name || '').replace(/^v/i, '');
+            if (latest && latest !== __.currentVersion) {
+                __.latestVersion = latest;
+                // Show notification badge in header
+                const badge = document.getElementById('version-badge');
+                if (badge) {
+                    badge.textContent = `v${latest} available!`;
+                    badge.style.display = 'inline';
+                }
+            }
+        } catch (e) {
+            // silently fail
+        }
     };
 
     // ============ MAINTAIN UI ============
@@ -209,6 +233,11 @@
     }, true);
 
     if (typeof __.startEngine === 'function') __.startEngine();
+
+    // Check for new version on GitHub (once per session)
+    setTimeout(() => {
+        if (typeof __.checkVersion === 'function') __.checkVersion();
+    }, 5000);
 
     setInterval(maintainUI, 1000);
 })();
