@@ -206,8 +206,14 @@
                     </div>
 
                     <div class="pill-panel" data-pill="advanced">
-                        <div style="display:flex; align-items:center; gap:4px;">
-                            <input type="checkbox" id="g-deepGlow" ${__.globalSettings.deepGlow ? 'checked' : ''}> <b style="font-size:10px;">Deep Glow</b>
+                        <div class="g-row" style="display:flex;align-items:center;gap:4px;">
+                            <label style="font-size:9px;white-space:nowrap;">Text Zoom</label><input type="number" id="g-textZoom" value="${__.globalSettings.textZoom * 100 || 90}" class="num-in" step="5" min="10" max="200" style="width:40px;"><span style="font-size:7px;color:#888;">%</span>
+                            <label style="font-size:9px;white-space:nowrap;margin-left:4px;">Letter Spacing</label><input type="number" id="g-letterSpacing" value="${__.globalSettings.letterSpacing || 0}" class="num-in" step="0.5" min="0" max="20" style="width:35px;">
+                        </div>
+                        <div class="g-row" style="display:flex;align-items:center;gap:4px; background:rgba(255,255,255,0.03); padding:2px 5px; border-radius:4px;">
+                            <input type="checkbox" id="g-useTextStroke" ${__.globalSettings.useTextStroke ? 'checked' : ''}> <b style="font-size:9px;">text-stroke</b>
+                            <span style="color:#555;">|</span>
+                            <input type="checkbox" id="g-deepGlow" ${__.globalSettings.deepGlow ? 'checked' : ''}> <b style="font-size:9px;">Deep Glow</b>
                         </div>
                         <div style="display:flex; flex-direction:column; gap:4px; margin-top:4px; border-top:1px dashed rgba(255,255,255,0.15); padding-top:4px;">
                             <b style="font-size:10px;">Special Effect</b>
@@ -338,7 +344,12 @@
                 } else {
                     const key = id.replace('g-', '').replace('Val', '').replace('Hex', '');
                     if (key === 'effectSpeed' || key === 'effectSpeedVal') return;
-                    __.globalSettings[key] = (e.target.type === 'number' || e.target.type === 'range') ? parseFloat(val) : val;
+                    if (key === 'textZoom') {
+                        // Store as decimal (e.g. 90% -> 0.9)
+                        __.globalSettings.textZoom = (e.target.type === 'number') ? parseFloat(val) / 100 : parseFloat(val);
+                    } else {
+                        __.globalSettings[key] = (e.target.type === 'number' || e.target.type === 'range') ? parseFloat(val) : val;
+                    }
                     const pair = document.getElementById(id.includes('Val') ? id.replace('Val', '') : id + 'Val');
                     if (pair) pair.value = val;
                 }
@@ -486,8 +497,8 @@
                     }
                     s.color1 = s.origColor1 || '#ffffff';
                     s.color3 = s.origColor3 || '#000000';
-                    s.fontSize = 25;
-                    s.outlineWidth = 2;
+                    s.fontSize = s.origFontSize || s.fontSize || 25;
+                    s.outlineWidth = s.origOutlineWidth || s.outlineWidth || 2;
                     s.blur = 2;
                 });
                 __.saveSubToStorage();

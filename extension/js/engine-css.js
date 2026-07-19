@@ -125,8 +125,8 @@
                 }
                 s.color1 = s.origColor1 || '#ffffff';
                 s.color3 = s.origColor3 || '#000000';
-                s.fontSize = 25;
-                s.outlineWidth = 2;
+                s.fontSize = s.origFontSize || s.fontSize || 25;
+                s.outlineWidth = s.origOutlineWidth || s.outlineWidth || 2;
                 s.blur = 2;
                 __.saveSubToStorage();
                 __.renderStyles();
@@ -853,7 +853,7 @@
     }
 
     // ============ RENDER A SINGLE SUB LINE ============
-    function renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, styleName, align) {
+    function renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, styleName, align, scaleH) {
         // alignment 1-9 ASS: 1=bottom-left, 2=bottom-center, 3=bottom-right,
         // 4=mid-left, 5=mid-center, 6=mid-right,
         // 7=top-left, 8=top-center, 9=top-right
@@ -953,29 +953,33 @@
                 if (lineElapsed >= syl.timeStart && lineElapsed < syl.timeEnd) {
                     useC1 = ks.c1;
                     useC3 = ks.c3;
-                    useOutl = Number(ks.outl) || 0;
-                    useSylBlur = sylBlur;
-                    if (isO) {
-                        const s = __.styleSettings[sub.style];
-                        useOutl = s ? s.outlineWidth : __.globalSettings.outlineWidth;
-                        useSylBlur = s ? s.blur : __.globalSettings.blur;
-                    }
+                    useOutl = (Number(ks.outl) || 0) * (scaleH || 1);
+                    useSylBlur = sylBlur * (scaleH || 1);
+                    // Active always uses kActive tab values, not style override
                 } else if (isO) {
                     const s = __.styleSettings[sub.style];
                     useC1 = s ? s.color1 : '#ffffff';
                     useC3 = s ? s.color3 : '#000000';
-                    useOutl = s ? s.outlineWidth : __.globalSettings.outlineWidth;
-                    useSylBlur = s ? s.blur : __.globalSettings.blur;
+                    useOutl = (s ? s.outlineWidth : __.globalSettings.outlineWidth) * (scaleH || 1);
+                    useSylBlur = (s ? s.blur : __.globalSettings.blur) * (scaleH || 1);
                 } else {
                     useC1 = ks.c1;
                     useC3 = ks.c3;
+                    useOutl = (Number(ks.outl) || 0) * (scaleH || 1);
+                    useSylBlur = sylBlur * (scaleH || 1);
                 }
 
+                const kUseStroke = __.globalSettings.useTextStroke;
+                const kStrokeW = (kUseStroke && useOutl > 0) ? Math.max(useOutl, 1) : 0;
                 Object.assign(span.style, {
                     color: useC1,
                     transform: `scale(${sylZoom})`,
-                    textShadow: __.buildShadow(useOutl, useSylBlur, useC3),
-                    webkitTextStroke: 'none'
+                    textShadow: __.globalSettings.deepGlow
+                        ? __.buildDeepGlow(useOutl, useSylBlur, useC3, kUseStroke)
+                        : __.buildShadow(useOutl, useSylBlur, useC3, kUseStroke),
+                    webkitTextStroke: kStrokeW > 0 ? `${kStrokeW}px ${useC3}` : 'none',
+                    paintOrder: kStrokeW > 0 ? 'stroke fill' : '',
+                    marginRight: (__.globalSettings.letterSpacing > 0) ? `${__.globalSettings.letterSpacing}px` : ''
                 });
                 spanWrap.appendChild(span);
             });
@@ -1054,10 +1058,16 @@
             } else if (eff === 'glow_pulse') {
                 renderGlowPulse(spanWrap, lineText, ow, bl, oc, c1);
             } else {
+                const useStroke = __.globalSettings.useTextStroke;
+                const strokeW = (useStroke && ow > 0) ? Math.max(ow, 1) : 0;
                 spanWrap.style.color = c1;
-                spanWrap.style.webkitTextStroke = 'none';
+                spanWrap.style.webkitTextStroke = strokeW > 0 ? `${strokeW}px ${oc}` : 'none';
+                spanWrap.style.paintOrder = strokeW > 0 ? 'stroke fill' : '';
                 spanWrap.innerText = lineText;
-                spanWrap.style.textShadow = __.globalSettings.deepGlow ? __.buildDeepGlow(ow, bl, oc) : __.buildShadow(ow, bl, oc);
+                spanWrap.style.letterSpacing = (__.globalSettings.letterSpacing > 0) ? `${__.globalSettings.letterSpacing}px` : '';
+                spanWrap.style.textShadow = __.globalSettings.deepGlow
+                    ? __.buildDeepGlow(ow, bl, oc, useStroke)
+                    : __.buildShadow(ow, bl, oc, useStroke);
                 applyBoxStyle(spanWrap, ub, bc, bo);
             }
         }
@@ -1082,14 +1092,21 @@
             const shifted = __.getShiftedSubs();
             const active = shifted.filter(sub => time >= sub.start && time <= sub.end);
 
+            // Compute proportional scale: video height vs PlayResY
+            const layerRect = layer.getBoundingClientRect();
+            const scaleH = (__.playResY > 0 && layerRect.height > 0) ? (layerRect.height / __.playResY) : 1;
+
             const lineInfos = [];
             active.forEach(sub => {
                 const s = __.styleSettings[sub.style] || { visible: true };
                 if (!s.visible) return;
                 const isO = s.override;
-                const fs = (isO ? s.fontSize : __.globalSettings.fontSize) + (__.isFullscreen ? 10 : 0);
-                const ow = isO ? s.outlineWidth : __.globalSettings.outlineWidth;
-                const bl = isO ? s.blur : __.globalSettings.blur;
+                const baseFs = isO ? s.fontSize : __.globalSettings.fontSize;
+                const customResize = __.getFontResize ? __.getFontResize(__.globalSettings.fontFamily) : 1;
+                const textZoom = (__.globalSettings.textZoom > 0 && __.globalSettings.textZoom <= 3) ? __.globalSettings.textZoom : 0.9;
+                const fs = baseFs * scaleH * customResize * textZoom;
+                const ow = (isO ? s.outlineWidth : __.globalSettings.outlineWidth) * scaleH;
+                const bl = (isO ? s.blur : __.globalSettings.blur) * scaleH;
                 const oc = isO ? (s.color3 || __.globalSettings.color3) : __.globalSettings.color3;
                 const c1 = isO ? s.color1 : __.globalSettings.color1;
 
@@ -1149,7 +1166,7 @@
                 groups.forEach((group, li) => {
                     const lineText = group.text || '';
                     const sylArray = group.syllables || [];
-                    const div = renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, sub.style, align);
+                    const div = renderSubLine(sub, lineText, li, totalLines, sylArray, fs, posX, posY, ow, bl, oc, c1, ub, bc, bo, opacity, isO, sub.style, align, scaleH);
                     layer.appendChild(div);
                 });
             });

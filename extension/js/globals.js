@@ -10,14 +10,15 @@
     ];
 
     const DEFAULTS = {
-        fontSize: 23, outlineWidth: 1.5, blur: 2, color1: '#ffffff', color3: '#000000',
+        fontSize: 70, outlineWidth: 3, blur: 6, color1: '#ffffff', color3: '#000000',
+        spacing: 0, letterSpacing: 0, textZoom: 0.8,
         useBox: false, deepGlow: false, boxColor: '#000000', boxOpacity: 0.5, fontFamily: 'VNF-Comic Sans',
         fadIn: 200, fadOut: 200, popupOpacity: 0.95, popupZoom: 1.0,
         posX: 350, posY: 100, width: 820, height: 600,
         isBold: true, isItalic: false, isUnderline: false, isStrike: false,
-        kPre:    { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.0 },
-        kActive: { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.1, zIn: 100, zOut: 100 },
-        kPost:   { c1: '#ffffff', c3: '#000000', outl: 1.5, blur: 2, zoom: 1.0 },
+        kPre:    { c1: '#ffffff', c3: '#000000', outl: 3, blur: 6, zoom: 1.0 },
+        kActive: { c1: '#ffffff', c3: '#000000', outl: 3, blur: 6, zoom: 1.1, zIn: 100, zOut: 100 },
+        kPost:   { c1: '#ffffff', c3: '#000000', outl: 3, blur: 6, zoom: 1.0 },
         closeOnClickOutside: true,
         constrainToVideo: true,
         specialEffect: 'none',
@@ -29,7 +30,8 @@
             ghosting: 1, water_reflection: 1, d3d_block: 1, glow_pulse: 1
         },
         sineWaveAmplitude: 2,
-        useGlobalStyles: false
+        useGlobalStyles: false,
+        useTextStroke: false
     };
 
     const __ = window.__SUB;
@@ -173,8 +175,42 @@
     };
 
     // Aegisub-style outline+blur: 8-direction text-shadow ring
-    __.buildShadow = function (ow, bl, oc) {
+    // If useTextStroke is enabled, outline is done via text-stroke + a light shadow for blur
+    // Font resize cache
+    __.fontResizeCache = {};
+    // Measure font metrics via canvas to compute proportional resize factor
+    // Returns customResize = usedFontSize / (ascent + descent)
+    // Most fonts: ~0.7-0.9 range
+    __.getFontResize = function (fontFamily) {
+        if (__.fontResizeCache[fontFamily] !== undefined) {
+            return __.fontResizeCache[fontFamily];
+        }
+        const cache = __.fontResizeCache;
+        const canvas = document.createElement('canvas');
+        canvas.width = 100;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        const usedFontSize = 2048;
+        ctx.font = `${usedFontSize}px "${fontFamily}"`;
+        // CRITICAL: measureText('') returns 0 bounding boxes in Chrome.
+        // Must measure actual text to get ascent/descent.
+        const metrics = ctx.measureText('Mg\xC0');
+        const ascent = metrics.actualBoundingBoxAscent || usedFontSize * 0.7;
+        const descent = metrics.actualBoundingBoxDescent || usedFontSize * 0.3;
+        const total = ascent + descent;
+        const resize = total > 0 ? usedFontSize / total : 1;
+        cache[fontFamily] = resize;
+        return resize;
+    };
+
+    __.buildShadow = function (ow, bl, oc, useStroke) {
         if (ow <= 0 && bl <= 0) return 'none';
+        if (useStroke) {
+            // text-stroke handles crisp outline
+            // Shadow is blur-only glow: ow spreads the blur wider
+            if (bl <= 0) return 'none';
+            return `0 0 ${Math.max(bl + ow, 1)}px ${oc}`;
+        }
         if (ow <= 0) {
             return `0 0 ${bl}px ${oc}`;
         }
@@ -194,8 +230,17 @@
         ].join(',');
     };
 
-    __.buildDeepGlow = function (ow, bl, oc) {
+    __.buildDeepGlow = function (ow, bl, oc, useStroke) {
         if (ow <= 0 && bl <= 0) return 'none';
+        if (useStroke) {
+            // text-stroke handles outline; deep glow is stacked blur layers
+            const layers = [];
+            for (let i = 1; i <= 4; i++) {
+                const blur = (bl + ow) * i * 1.2;
+                layers.push(`0 0 ${Math.max(blur, 1)}px ${oc}`);
+            }
+            return layers.join(', ');
+        }
         const layers = [];
         for (let i = 1; i <= 4; i++) {
             const spread = ow * i * 1.2;

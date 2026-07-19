@@ -99,6 +99,9 @@
                 const marginR = p[20] ? parseInt(p[20].trim()) || 10 : 10;
                 const marginV = p[21] ? parseInt(p[21].trim()) || 10 : 10;
                 const fontSize = p[2] ? parseFloat(p[2].trim()) || 20 : 20;
+                const spacing = p[13] ? parseFloat(p[13].trim()) || 0 : 0;
+                const outline = p[16] ? parseFloat(p[16].trim()) || 2 : 2;
+                const shadow = p[17] ? parseFloat(p[17].trim()) || 0 : 0;
                 let defX = __.playResX / 2;
                 let defY = __.playResY - 40;
                 // Use alignment to set default center position
@@ -116,15 +119,16 @@
                     color1: c1, color3: c3,
                     origColor1: c1, origColor3: c3,
                     posX: defX, posY: defY,
-                    fontSize: 25, outlineWidth: 2, blur: 2,
+                    fontSize: fontSize, outlineWidth: outline, blur: 2,
+                    spacing: spacing, origSpacing: spacing,
                     fontName: fontName,
                     align: align,
                     marginL: marginL, marginR: marginR, marginV: marginV,
                     origAlign: align,
                     origMarginL: marginL, origMarginR: marginR, origMarginV: marginV,
                     origFontSize: fontSize,
-                    origOutlineWidth: 2,
-                    origShadow: 0,
+                    origOutlineWidth: outline,
+                    origShadow: shadow,
                     override: !__.globalSettings.useGlobalStyles,
                     visible: true
                 };
