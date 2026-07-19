@@ -29,8 +29,7 @@
             ghosting: 1, water_reflection: 1, d3d_block: 1, glow_pulse: 1
         },
         sineWaveAmplitude: 2,
-        useGlobalStyles: false,
-        letterSpacing: 0
+        useGlobalStyles: false
     };
 
     const __ = window.__SUB;
@@ -47,9 +46,6 @@
     __.timeShiftMs = 0;
     __.fontUrl = chrome.runtime.getURL("vnf-comic-sans.ttf");
     __.assFileCache = [];
-    __.currentVersion = '8.1';
-    __.latestVersion = null; // will be fetched from GitHub
-    __.versionCheckUrl = 'https://api.github.com/repos/zingky/YouTube-Aegisub-Loader/releases/latest';
 
     // ============ SUB SOURCES MANAGEMENT ============
     __.subSources = JSON.parse(localStorage.getItem(STORAGE_KEY_SOURCES)) || DEFAULT_SOURCES.map(s => ({ ...s }));
@@ -164,9 +160,9 @@
     __.saveSubToStorage = function () {
         const id = __.getVideoId();
         if (id && __.subtitles.length) {
-            // Chỉ lưu style settings + kích thước video, KHÔNG lưu dữ liệu từng dòng sub
             chrome.storage.local.set({
                 [id]: {
+                    subtitles: __.subtitles,
                     playResX: __.playResX,
                     playResY: __.playResY,
                     styleSettings: __.styleSettings
