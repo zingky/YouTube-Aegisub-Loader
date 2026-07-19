@@ -1,4 +1,4 @@
-# 🎬 YouTube Aegisub Loader v8.1
+# 🎬 YouTube Aegisub Loader
 
 A simple Chrome Extension to load and display Aegisub subtitles (.ass) on YouTube with karaoke support, per-style settings, CSS/ASS.js dual engine (ASS.js is experimental), and GitHub source management.
 
@@ -48,7 +48,7 @@ This extension uses **CSS rendering** as the default engine (HTML/CSS-based, sup
 ---
 
 <a name="vietnamese"></a>
-# 🎬 YouTube Aegisub Loader v8.1 (Bản Tiếng Việt)
+# 🎬 YouTube Aegisub Loader (Bản Tiếng Việt)
 
 Một tiện ích Chrome để tải và hiển thị phụ đề Aegisub (.ass) trên YouTube, hỗ trợ karaoke, tùy chỉnh từng style, song song 2 engine CSS/ASS.js (ASS.js đang thử nghiệm), và quản lý nhiều nguồn GitHub.
 
